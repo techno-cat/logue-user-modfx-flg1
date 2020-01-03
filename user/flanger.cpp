@@ -57,7 +57,7 @@ void MODFX_PROCESS(const float *main_xn, float *main_yn,
                    const float *sub_xn,  float *sub_yn,
                    uint32_t frames)
 {
-  const float wet = 0.5f;
+  const float wet = fx_softclipf(1/3.f, s_depth * 4.f) * (3.f/4.f);
   const float dry = 1.f - wet;
   const float fb = LCW_FEEDBACK_GAIN;
 
