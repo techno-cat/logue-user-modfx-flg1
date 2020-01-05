@@ -8,6 +8,7 @@ This software is released under the MIT License, see LICENSE.txt.
 #include "LCWDelay.h"
 #include "LCWFixedMath.h"
 #include "LCWLowFreqOsc.h"
+#include "LCWClipCurveTable.h"
 
 static __sdram int32_t s_delay_ram_input[LCW_DELAY_INPUT_SIZE];
 static __sdram int32_t s_delay_ram_sampling[LCW_DELAY_SAMPLING_SIZE];
@@ -31,6 +32,14 @@ __fast_inline float softlimiter(float c, float x, float limit)
   else {
     return si_copysignf( th + fx_softclipf(c, xf - th), x );
   }
+}
+
+__fast_inline float lut_clipcurvef(float x) {
+  const float xf = si_fabsf(clampmaxfsel(x, 2.f)) * (1 << LCW_CLIP_CURVE_FRAC_BITS);
+  const uint32_t xi = (uint32_t)x;
+  const float y0 = gLcwClipCurveTable[xi];
+  const float y1 = gLcwClipCurveTable[xi+1];
+  return si_copysignf(linintf(xf - xi, y0, y1), x);
 }
 
 void MODFX_INIT(uint32_t platform, uint32_t api)
@@ -57,8 +66,8 @@ void MODFX_PROCESS(const float *main_xn, float *main_yn,
                    const float *sub_xn,  float *sub_yn,
                    uint32_t frames)
 {
-  const float wet = fx_softclipf(1/3.f, s_depth * 4.f) * (3.f/4.f);
-  const float dry = 1.f - wet;
+  const float wet = fx_softclipf( 1/3.f, s_depth * 4.f );
+  const float dry = 1.f - (wet * 0.5f);
   const float fb = LCW_FEEDBACK_GAIN;
 
   const float * mx = main_xn;
@@ -82,7 +91,7 @@ void MODFX_PROCESS(const float *main_xn, float *main_yn,
     float fbL = softlimiter(0.1f, wL, 1.2f) * fb;
     LCWDelayInput( (int32_t)(((xL * s_inputGain) + fbL) * (1 << 24)) );
 
-    float yL = (dry * xL) + (wet * softlimiter(0.05f, wL, 1.f));
+    float yL = lut_clipcurvef( (dry * xL) + (wet * wL) );
 
     mx += 2;
     sx += 2;
