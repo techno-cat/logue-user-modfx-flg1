@@ -12,7 +12,7 @@ else
     detected_OS := $(shell uname -s)
 endif
 
-PLATFORMDIR = ../../../../v1.1_master/platform/nutekt-digital
+PLATFORMDIR = ../../../../../../Korg/v1.1_master/platform/nutekt-digital
 PROJECTDIR = .
 TOOLSDIR = $(PLATFORMDIR)/../../tools
 EXTDIR = $(PLATFORMDIR)/../ext

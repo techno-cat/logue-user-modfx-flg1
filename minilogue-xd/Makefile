@@ -12,7 +12,7 @@ else
     detected_OS := $(shell uname -s)
 endif
 
-PLATFORMDIR = ../../../../v1.1_master/platform/minilogue-xd
+PLATFORMDIR = ../../../../../../Korg/v1.1_master/platform/minilogue-xd
 PROJECTDIR = .
 TOOLSDIR = $(PLATFORMDIR)/../../tools
 EXTDIR = $(PLATFORMDIR)/../ext

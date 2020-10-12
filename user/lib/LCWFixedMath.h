@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 extern SQ15_16 q16_pow2(SQ15_16 x);
+extern SQ7_24 q24_pow2(SQ7_24 x);
 
 #ifdef __cplusplus
 }

@@ -7,10 +7,12 @@ This software is released under the MIT License, see LICENSE.txt.
 #include "LCWFixedMath.h"
 #include "LCWDelayFirParamTable.h"
 
-#define LCW_DELAY_BUFFER_DEC(buf) (((buf).pointer - 1) & (buf).mask)
+//#define LCW_DELAY_BUFFER_DEC(buf) (((buf).pointer - 1) & (buf).mask)
+#define LCW_DELAY_BUFFER_DEC(buf) (((buf)->pointer - 1) & (buf)->mask)
 
 // 入力バッファにおけるサンプリング位置（固定）
-#define LCW_DELAY_SAMPLING_POS (1 + (LCW_DELAY_FIR_TAP >> 1))
+#define FIR_TAP_OVER_SAMPLING (5)
+#define LCW_DELAY_SAMPLING_POS (1 + (FIR_TAP_OVER_SAMPLING >> 1))
 
 typedef struct {
     SQ7_24 *buffer;
@@ -77,23 +79,30 @@ void LCWDelayReset(void)
         delaySamplingBuffer.buffer[i] = 0;
     }
 */
-    delayBlock.current = LCW_SQ15_16( LCW_DELAY_SAMPLING_POS );
-    delayBlock.sampling = LCW_SQ15_16( LCW_DELAY_SAMPLING_POS );
+    delayBlock.current = LCW_SQ15_16( 1.0 );
+    delayBlock.sampling = LCW_SQ15_16( 1.0 );
     delayBlock.step = LCW_SQ7_24( 1.0 );
     delayBlock.delayOffset = delaySize << 8;
 }
 
 void LCWDelayUpdate(int32_t delayPitch)
 {
+#if(0)
     // SQ7.24 -> SQ15.16
     const SQ15_16 pitch = delayPitch >> 8;
     // SQ15.16 -> SQ7.24
     delayBlock.step = q16_pow2(pitch) << 8;
+#else
+    delayBlock.step = q24_pow2(delayPitch);
+#endif
 }
 
 void LCWDelayInput(int32_t fxSend)
 {
-    delayInputBuffer.pointer = LCW_DELAY_BUFFER_DEC(delayInputBuffer);
+    LCWDelayBuffer *input = &delayInputBuffer;
+    LCWDelayBuffer *sampling = &delaySamplingBuffer;
+
+    delayInputBuffer.pointer = LCW_DELAY_BUFFER_DEC(input);
     delayInputBuffer.buffer[delayInputBuffer.pointer] = (SQ7_24)fxSend;
     delayBlock.current += LCW_SQ15_16( 1.0 );
 
@@ -108,13 +117,13 @@ void LCWDelayInput(int32_t fxSend)
         const SQ7_24 sample = delayInputBuffer.buffer[i & delayInputBuffer.mask];
 #endif
 
-        delaySamplingBuffer.pointer = LCW_DELAY_BUFFER_DEC(delaySamplingBuffer);
+        delaySamplingBuffer.pointer = LCW_DELAY_BUFFER_DEC(sampling);
         delaySamplingBuffer.buffer[delaySamplingBuffer.pointer] = sample;
         delayBlock.current -= step;
     }
 }
 
-int32_t LCWDelayOutput(void)
+int32_t LCWDelayOutput(int32_t delaySamples)
 {
     // memo:
     // currentがsamplingを超えないことを想定している
@@ -122,7 +131,8 @@ int32_t LCWDelayOutput(void)
 
     // u16.16 -> u24.8
     uint32_t offset = (tmp << 8) / (delayBlock.step >> (24 - 16));
-    offset += delayBlock.delayOffset;
+    //offset += delayBlock.delayOffset; // delaySamplesを使うので参照しない
+    offset += (delaySamples << 8);
 
     const LCWDelayBuffer *p = &delaySamplingBuffer;
     const int32_t i = p->pointer - (LCW_DELAY_FIR_TAP >> 1) + (int32_t)(offset >> 8);

@@ -20,9 +20,9 @@ typedef struct {
   uint32_t dt;
   uint32_t t;
   uint32_t dir; // 0: +, 1: -
-  int32_t th;   // s15.16
-  int32_t out;  // s15.16
-  int32_t out2; // s15.16
+  int32_t th;   // s7.24
+  int32_t out;  // s7.24
+  int32_t out2; // s7.24
 } LCWLowFreqOscBlock;
 
 extern void lfo_inc(LCWLowFreqOscBlock *block);

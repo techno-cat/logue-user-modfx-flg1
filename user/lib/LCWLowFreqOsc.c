@@ -48,8 +48,8 @@ void lfo_inc(LCWLowFreqOscBlock *block)
   block->t += block->dt;
   uint32_t i = block->t >> (LCW_LFO_TIMER_BITS - LCW_POW2_INV_TABLE_BITS);
   if ( 0 < i ) {
-    uint64_t tmp = (uint64_t)(0x10000 - block->out) * pow2InvTable[i];
-    block->out = 0x10000 - (int32_t)(tmp >> 16);
+    uint64_t tmp = (uint64_t)(LCW_SQ7_24(1.0) - block->out) * pow2InvTable[i];
+    block->out = LCW_SQ7_24(1.0) - (int32_t)(tmp >> 16);
     if ( block->th <= block->out ) {
       block->dir = ( block->dir ) ? 0 : 1;
       block->out = block->th - block->out;

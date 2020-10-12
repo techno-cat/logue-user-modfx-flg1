@@ -1,12 +1,12 @@
 # flg1
-This is simple flanger,  
+This is simple chorus / flanger,  
 can use as `USER MODULATION FX`.
 
 # Parameters
 - time  
 Modulation rate.
 - depth  
-Modulation depth.
+Modulation depth / Feedback gain.
 
 # How to build
 1. Clone (or download) and setup [logue-sdk](https://github.com/korginc/logue-sdk).
