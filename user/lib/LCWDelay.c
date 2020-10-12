@@ -10,10 +10,6 @@ This software is released under the MIT License, see LICENSE.txt.
 //#define LCW_DELAY_BUFFER_DEC(buf) (((buf).pointer - 1) & (buf).mask)
 #define LCW_DELAY_BUFFER_DEC(buf) (((buf)->pointer - 1) & (buf)->mask)
 
-// 入力バッファにおけるサンプリング位置（固定）
-#define FIR_TAP_OVER_SAMPLING (5)
-#define LCW_DELAY_SAMPLING_POS (1 + (FIR_TAP_OVER_SAMPLING >> 1))
-
 typedef struct {
     SQ7_24 *buffer;
     uint32_t size;
